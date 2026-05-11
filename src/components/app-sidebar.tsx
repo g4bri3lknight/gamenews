@@ -28,12 +28,16 @@ import {
   Sun,
   ChevronLeft,
   ChevronRight,
+  Gift,
+  Percent,
 } from 'lucide-react'
 
 const navItems: { view: View; icon: React.ReactNode; label: string }[] = [
   { view: 'dashboard', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Dashboard' },
   { view: 'news', icon: <Newspaper className="h-5 w-5" />, label: 'Notizie' },
   { view: 'calendar', icon: <CalendarDays className="h-5 w-5" />, label: 'Calendario Uscite' },
+  { view: 'free-games', icon: <Gift className="h-5 w-5" />, label: 'Giochi Gratis' },
+  { view: 'deals', icon: <Percent className="h-5 w-5" />, label: 'Offerte' },
   { view: 'settings', icon: <Settings className="h-5 w-5" />, label: 'Impostazioni' },
 ]
 
@@ -178,14 +182,9 @@ export function AppSidebar() {
         <SidebarContent collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       </aside>
 
-      {/* Mobile sidebar */}
-      <div className="md:hidden fixed top-0 left-0 z-50">
+      {/* Mobile sidebar (controlled by store, triggered from page.tsx header) */}
+      <div className="md:hidden">
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="m-2 bg-sidebar text-sidebar-foreground">
-              <Gamepad2 className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
           <SheetContent side="left" className="p-0 w-60">
             <SheetTitle className="sr-only">Menu di navigazione</SheetTitle>
             <SidebarContent collapsed={false} onToggle={() => {}} />

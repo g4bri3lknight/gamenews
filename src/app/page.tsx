@@ -6,14 +6,15 @@ import { AppSidebar } from '@/components/app-sidebar'
 import DashboardView from '@/components/views/dashboard'
 import { NewsView } from '@/components/views/news'
 import { CalendarView } from '@/components/views/calendar'
+import { FreeGamesView } from '@/components/views/free-games'
+import { DealsView } from '@/components/views/deals'
 import SettingsView from '@/components/views/settings'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { ArrowUp } from 'lucide-react'
-import { Gamepad2 } from 'lucide-react'
+import { ArrowUp, Gamepad2, Menu } from 'lucide-react'
 
 export default function Home() {
-  const { currentView } = useAppStore()
+  const { currentView, setSidebarOpen } = useAppStore()
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(0)
   const mainRef = useRef<HTMLDivElement>(null)
@@ -57,6 +58,26 @@ export default function Home() {
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar />
+
+      {/* Mobile header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-3 h-14 border-b border-border bg-card/80 backdrop-blur-md">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 flex-shrink-0"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Apri menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+            <Gamepad2 className="h-3.5 w-3.5" />
+          </div>
+          <span className="font-bold text-base tracking-tight">GameVault</span>
+        </div>
+      </header>
+
       <main ref={mainRef} className="flex-1 overflow-auto relative">
         <AnimatePresence mode="wait">
           <motion.div
@@ -65,11 +86,13 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="p-4 sm:p-6 lg:p-8 pb-20"
+            className="px-4 sm:px-6 lg:px-8 pt-[3.75rem] md:pt-4 lg:pt-8 pb-20"
           >
             {currentView === 'dashboard' && <DashboardView />}
             {currentView === 'news' && <NewsView />}
             {currentView === 'calendar' && <CalendarView />}
+            {currentView === 'free-games' && <FreeGamesView />}
+            {currentView === 'deals' && <DealsView />}
             {currentView === 'settings' && <SettingsView />}
           </motion.div>
         </AnimatePresence>
@@ -88,13 +111,9 @@ export default function Home() {
             </div>
             <Button
               size="icon"
-              variant={showScrollTop ? 'default' : 'ghost'}
+              variant="ghost"
               onClick={scrollToTop}
-              className={`h-8 w-8 transition-all duration-300 ${
-                showScrollTop
-                  ? 'opacity-100'
-                  : 'opacity-0 pointer-events-none'
-              }`}
+              className={`h-8 w-8 ${showScrollTop ? 'flex' : 'hidden'}`}
               aria-label="Torna in cima"
             >
               <ArrowUp className="h-3.5 w-3.5" />

@@ -2,7 +2,7 @@
 // TYPES
 // ============================================
 
-export type View = 'dashboard' | 'news' | 'calendar' | 'settings'
+export type View = 'dashboard' | 'news' | 'calendar' | 'free-games' | 'deals' | 'settings'
 
 export interface NewsArticle {
   id: string
@@ -190,6 +190,67 @@ export function formatMonthKey(month: string): string {
   const [year, monthNum] = month.split('-').map(Number)
   if (!year || !monthNum) return month
   return `${ITALIAN_MONTHS[monthNum - 1]} ${year}`
+}
+
+// ============================================
+// DEAL STORES (CheapShark)
+// ============================================
+
+export const DEAL_STORES = [
+  { value: '', label: 'Tutti i Negozi' },
+  { value: '1', label: 'Steam' },
+  { value: '25', label: 'Epic Games' },
+  { value: '7', label: 'GOG' },
+  { value: '13', label: 'Uplay' },
+  { value: '11', label: 'Humble' },
+  { value: '15', label: 'Fanatical' },
+  { value: '3', label: 'GreenManGaming' },
+  { value: '27', label: 'Gamesplanet' },
+  { value: '35', label: 'DreamGame' },
+]
+
+export const DEAL_SORT_OPTIONS = [
+  { value: 'Deal Rating', label: 'Migliori Offerte' },
+  { value: 'Savings', label: 'Sconto Maggiore' },
+  { value: 'Metacritic', label: 'Voto Metacritic' },
+  { value: 'Price', label: 'Prezzo Crescente' },
+  { value: 'Title', label: 'Alfabetico A-Z' },
+  { value: 'Recent', label: 'Più Recenti' },
+]
+
+export const CHEAPSHARK_STORE_MAP: Record<string, { name: string; color: string }> = {
+  // CheapShark numeric IDs (for deals)
+  '1': { name: 'Steam', color: '#1b2838' },
+  '2': { name: 'GamersGate', color: '#7ebd32' },
+  '3': { name: 'GreenManGaming', color: '#5c9a3c' },
+  '7': { name: 'GOG', color: '#a348a6' },
+  '8': { name: 'EA', color: '#f56c2d' },
+  '9': { name: 'Get Games', color: '#666' },
+  '11': { name: 'Humble', color: '#e04e2c' },
+  '13': { name: 'Uplay', color: '#0070ff' },
+  '15': { name: 'Fanatical', color: '#1e9fd9' },
+  '21': { name: 'WinGameStore', color: '#003366' },
+  '23': { name: 'GameBillet', color: '#00b3ff' },
+  '25': { name: 'Epic Games', color: '#0078f2' },
+  '27': { name: 'Gamesplanet', color: '#da291c' },
+  '28': { name: 'Gamesload', color: '#333' },
+  '29': { name: '2Game', color: '#ff6600' },
+  '30': { name: 'IndieGala', color: '#c0392b' },
+  '35': { name: 'DreamGame', color: '#ff6600' },
+  // String store IDs (from free-games API: GamerPower, Epic direct, etc.)
+  'epic': { name: 'Epic Games', color: '#0078f2' },
+  'steam': { name: 'Steam', color: '#1b2838' },
+  'gog': { name: 'GOG', color: '#a348a6' },
+  'humble': { name: 'Humble', color: '#e04e2c' },
+  'amazon': { name: 'Amazon Prime Gaming', color: '#ff9900' },
+  'ubisoft': { name: 'Ubisoft', color: '#0070ff' },
+  'itchio': { name: 'Itch.io', color: '#fa5c5c' },
+  'indiegala': { name: 'IndieGala', color: '#c0392b' },
+  'other': { name: 'Altro', color: '#666' },
+}
+
+export function getStoreInfo(storeID: string): { name: string; color: string } {
+  return CHEAPSHARK_STORE_MAP[storeID] || { name: `Store ${storeID}`, color: '#666' }
 }
 
 export function getTodayMonthKey(): string {

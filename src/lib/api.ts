@@ -98,3 +98,65 @@ export async function setSetting(key: string, value: string): Promise<void> {
     body: JSON.stringify({ key, value }),
   })
 }
+
+// ============================================
+// FREE GAMES API (CheapShark)
+// ============================================
+
+export interface FreeGame {
+  title: string
+  dealID: string
+  storeID: string
+  storeName: string
+  gameID: string
+  salePrice: string
+  normalPrice: string
+  savings: string
+  metacriticScore: string
+  steamRatingText: string
+  steamRatingPercent: string
+  steamAppID: string
+  releaseDate: number
+  dealRating: string
+  thumb: string
+  dealUrl: string
+}
+
+export async function getFreeGames(params?: {
+  pageNumber?: number
+  pageSize?: number
+  storeID?: string
+}): Promise<FreeGame[]> {
+  const sp = new URLSearchParams()
+  if (params?.pageNumber !== undefined) sp.set('pageNumber', String(params.pageNumber))
+  if (params?.pageSize !== undefined) sp.set('pageSize', String(params.pageSize))
+  if (params?.storeID) sp.set('storeID', params.storeID)
+  const query = sp.toString() ? `?${sp.toString()}` : ''
+  return fetchAPI<FreeGame[]>(`${BASE}/free-games${query}`)
+}
+
+// ============================================
+// DEALS API (CheapShark)
+// ============================================
+
+export interface GameDeal extends FreeGame {
+  isOnSale: string
+  steamRatingCount: string
+}
+
+export async function getDeals(params?: {
+  pageNumber?: number
+  pageSize?: number
+  storeID?: string
+  sortBy?: string
+  upperPrice?: number
+}): Promise<GameDeal[]> {
+  const sp = new URLSearchParams()
+  if (params?.pageNumber !== undefined) sp.set('pageNumber', String(params.pageNumber))
+  if (params?.pageSize !== undefined) sp.set('pageSize', String(params.pageSize))
+  if (params?.storeID) sp.set('storeID', params.storeID)
+  if (params?.sortBy) sp.set('sortBy', params.sortBy)
+  if (params?.upperPrice !== undefined) sp.set('upperPrice', String(params.upperPrice))
+  const query = sp.toString() ? `?${sp.toString()}` : ''
+  return fetchAPI<GameDeal[]>(`${BASE}/deals${query}`)
+}
