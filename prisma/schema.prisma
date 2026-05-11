@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Article {
+  id           String   @id @default(cuid())
+  title        String
+  link         String   @unique
+  description  String   @default("")
+  content      String   @default("")
+  imageUrl     String   @default("")
+  source       String
+  author       String   @default("")
+  category     String   @default("")
+  publishedAt  DateTime
+  fetchedAt    DateTime @default(now())
+}
+
+model FollowedGame {
+  id           String   @id @default(cuid())
+  rawgId       Int      @unique
+  title        String
+  imageUrl     String   @default("")
+  releasedAt   String   @default("")
+  genres       String   @default("[]")
+  rating       Float    @default(0)
+  addedAt      DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @default("")
+}
