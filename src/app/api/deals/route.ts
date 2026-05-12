@@ -26,17 +26,22 @@ export async function GET(request: NextRequest) {
   const storeID = searchParams.get('storeID') || ''
   const sortBy = searchParams.get('sortBy') || 'Deal Rating'
   const upperPrice = searchParams.get('upperPrice') || ''
+  const lowerPrice = searchParams.get('lowerPrice') || ''
+  const metacritic = searchParams.get('metacritic') || ''
+  const onSale = searchParams.get('onSale') !== 'false' // default true
 
-  const cacheKey = `deals-${pageNumber}-${pageSize}-${storeID}-${sortBy}-${upperPrice}`
+  const cacheKey = `deals-${pageNumber}-${pageSize}-${storeID}-${sortBy}-${upperPrice}-${lowerPrice}-${metacritic}-${onSale}`
   if (cache && cache.timestamp + CACHE_TTL > Date.now() && cache.key === cacheKey) {
     return NextResponse.json(cache.data)
   }
 
   try {
-    // onSale=1 + lowerPrice=0.01 to EXCLUDE free games from deals
-    let url = `https://www.cheapshark.com/api/1.0/deals?onSale=1&pageNumber=${pageNumber}&pageSize=${pageSize}&sortBy=${encodeURIComponent(sortBy)}&lowerPrice=0.01`
+    // Build CheapShark URL
+    const effectiveLowerPrice = lowerPrice || '0.01' // default 0.01 to exclude free games from deals
+    let url = `https://www.cheapshark.com/api/1.0/deals?onSale=${onSale ? 1 : 0}&pageNumber=${pageNumber}&pageSize=${pageSize}&sortBy=${encodeURIComponent(sortBy)}&lowerPrice=${effectiveLowerPrice}`
     if (storeID) url += `&storeID=${storeID}`
     if (upperPrice) url += `&upperPrice=${upperPrice}`
+    if (metacritic) url += `&metacritic=${metacritic}`
 
     const response = await fetch(url, {
       headers: { 'User-Agent': 'GameVault/1.0' },

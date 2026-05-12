@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useAppStore, type View } from '@/lib/store'
-import { THEMES } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -22,14 +21,11 @@ import {
   Newspaper,
   CalendarDays,
   Settings,
-  Gamepad2,
-  Palette,
-  Moon,
-  Sun,
   ChevronLeft,
   ChevronRight,
   Gift,
   Percent,
+  Bookmark,
 } from 'lucide-react'
 
 const navItems: { view: View; icon: React.ReactNode; label: string }[] = [
@@ -38,50 +34,9 @@ const navItems: { view: View; icon: React.ReactNode; label: string }[] = [
   { view: 'calendar', icon: <CalendarDays className="h-5 w-5" />, label: 'Calendario Uscite' },
   { view: 'free-games', icon: <Gift className="h-5 w-5" />, label: 'Giochi Gratis' },
   { view: 'deals', icon: <Percent className="h-5 w-5" />, label: 'Offerte' },
+  { view: 'favorites', icon: <Bookmark className="h-5 w-5" />, label: 'Preferiti' },
   { view: 'settings', icon: <Settings className="h-5 w-5" />, label: 'Impostazioni' },
 ]
-
-function ThemeButton() {
-  const { currentTheme, setCurrentTheme } = useAppStore()
-  const theme = THEMES.find((t) => t.value === currentTheme) || THEMES[0]
-  const nextThemeIndex = (THEMES.findIndex((t) => t.value === currentTheme) + 1) % THEMES.length
-  const nextTheme = THEMES[nextThemeIndex]
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentTheme(nextTheme.value)}
-            className="relative overflow-hidden"
-          >
-            <div
-              className="absolute inset-0 rounded-md opacity-80"
-              style={{ backgroundColor: theme.preview.accent }}
-            />
-            {theme.type === 'dark' ? (
-              <Moon className="h-4 w-4 relative z-10 text-white" />
-            ) : (
-              <Sun className="h-4 w-4 relative z-10 text-white" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: theme.preview.accent }}
-          />
-          <span>{theme.label}</span>
-          <span className="text-muted-foreground text-xs">
-            &rarr; {nextTheme.label}
-          </span>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  )
-}
 
 function SidebarContent({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const { currentView, setCurrentView, sidebarOpen, setSidebarOpen } = useAppStore()
@@ -93,15 +48,28 @@ function SidebarContent({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-4 min-h-[65px]">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-          <Gamepad2 className="h-5 w-5" />
-        </div>
-        {!collapsed && (
-          <div className="overflow-hidden">
-            <h1 className="font-bold text-lg leading-tight">GameVault</h1>
-            <p className="text-xs text-muted-foreground">News & Calendar</p>
+      {/* Header - just logo, title is now in the fixed top header */}
+      <div className="flex items-center justify-center p-4 min-h-[65px]">
+        {!collapsed ? (
+          <div className="flex items-center gap-3 w-full">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <rect x="2" y="6" width="20" height="12" rx="2" />
+                <path d="M12 12h.01" />
+                <path d="M17 12h.01" />
+                <path d="M7 12h.01" />
+              </svg>
+            </div>
+            <span className="font-bold text-lg leading-tight">Menu</span>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M12 12h.01" />
+              <path d="M17 12h.01" />
+              <path d="M7 12h.01" />
+            </svg>
           </div>
         )}
       </div>
@@ -135,16 +103,8 @@ function SidebarContent({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
       <Separator className="bg-sidebar-border" />
 
-      {/* Footer */}
-      <div className="p-2 flex items-center gap-1">
-        <ThemeButton />
-        {!collapsed && (
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground truncate px-2">
-              {THEMES.find((t) => t.value === useAppStore.getState().currentTheme)?.label}
-            </p>
-          </div>
-        )}
+      {/* Footer - just collapse toggle */}
+      <div className="p-2 flex items-center justify-center">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

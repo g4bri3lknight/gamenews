@@ -2,7 +2,7 @@
 // TYPES
 // ============================================
 
-export type View = 'dashboard' | 'news' | 'calendar' | 'free-games' | 'deals' | 'settings'
+export type View = 'dashboard' | 'news' | 'calendar' | 'free-games' | 'deals' | 'favorites' | 'settings'
 
 export interface NewsArticle {
   id: string
@@ -40,6 +40,18 @@ export interface FollowedGame {
   updatedAt: string
 }
 
+export interface Favorite {
+  id: string
+  type: string // "article", "deal", "free_game"
+  title: string
+  link: string
+  imageUrl: string
+  description: string
+  source: string
+  metadata: string // JSON string
+  addedAt: string
+}
+
 export interface FeedSource {
   name: string
   url: string
@@ -57,6 +69,8 @@ export const RSS_FEEDS: FeedSource[] = [
   { name: 'Gamesurf', url: 'https://www.gamesurf.it/feed', color: '#00a651', icon: 'gamepad2' },
   { name: 'GamingToday', url: 'https://gamingtoday.it/feed/', color: '#6366f1', icon: 'newspaper' },
   { name: 'Lega Nerd', url: 'https://leganerd.com/feed/', color: '#e11d48', icon: 'glasses' },
+  { name: 'Everyeye.it', url: 'https://www.everyeye.it/feed/', color: '#009933', icon: 'eye' },
+  { name: 'Spaziogames.it', url: 'https://www.spaziogames.it/feed/', color: '#e53935', icon: 'rocket' },
 ]
 
 export const ALL_SOURCES = [

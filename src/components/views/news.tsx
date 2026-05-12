@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { getNews } from '@/lib/api'
+import { getNews, addFavorite, removeFavorite, getFavorites } from '@/lib/api'
+import { useAppStore } from '@/lib/store'
 import {
   ALL_SOURCES, NEWS_CATEGORIES, SORT_OPTIONS, timeAgo, getSourceColor,
 } from '@/lib/constants'
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import {
   Newspaper, Search, RefreshCw, ExternalLink, User, Tag, Loader2,
+  Bookmark, BookmarkCheck,
 } from 'lucide-react'
 
 
@@ -29,6 +31,19 @@ import {
 
 function ArticleCard({ article }: { article: NewsArticle }) {
   const sourceColor = getSourceColor(article.source)
+  const bookmarked = useAppStore((s) => s.isFavorite(article.link))
+  const { addFavorite: addFav, removeFavorite: removeFav } = useAppStore()
+
+  async function toggleBookmark(e: React.MouseEvent) {
+    e.preventDefault(); e.stopPropagation()
+    if (bookmarked) {
+      const fav = useAppStore.getState().favorites.find(f => f.link === article.link)
+      if (fav) { await removeFavorite(fav.id); removeFav(fav.id) }
+    } else {
+      const fav = await addFavorite({ type: 'article', title: article.title, link: article.link, imageUrl: article.imageUrl, description: article.description, source: article.source })
+      addFav(fav)
+    }
+  }
 
   return (
     <a
@@ -64,6 +79,13 @@ function ArticleCard({ article }: { article: NewsArticle }) {
             </Badge>
           )}
         </div>
+        <button
+          onClick={toggleBookmark}
+          className="absolute top-2 right-2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+          aria-label={bookmarked ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+        >
+          {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 text-primary fill-primary" /> : <Bookmark className="h-3.5 w-3.5 text-white" />}
+        </button>
       </div>
       <div className="p-4 space-y-2">
         <h3 className="font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
@@ -117,6 +139,7 @@ function ArticleCardSkeleton() {
 // ============================================
 
 export function NewsView() {
+  const { setFavorites } = useAppStore()
   const [articles, setArticles] = useState<NewsArticle[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -131,6 +154,11 @@ export function NewsView() {
   const [sort, setSort] = useState('newest')
   const [offset, setOffset] = useState(0)
   const limit = 12
+
+  // Load favorites
+  useEffect(() => {
+    getFavorites().then(setFavorites).catch(() => {})
+  }, [setFavorites])
 
   // Debounce search
   useEffect(() => {

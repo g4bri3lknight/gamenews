@@ -38,3 +38,15 @@ model Setting {
   key   String @unique
   value String @default("")
 }
+
+model Favorite {
+  id          String   @id @default(cuid())
+  type        String
+  title       String
+  link        String
+  imageUrl    String   @default("")
+  description String   @default("")
+  source      String   @default("")
+  metadata    String   @default("{}")
+  addedAt     DateTime @default(now())
+}

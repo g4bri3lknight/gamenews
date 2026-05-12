@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getFreeGames } from '@/lib/api'
 import type { FreeGame } from '@/lib/api'
+import { addFavorite, removeFavorite, getFavorites } from '@/lib/api'
+import { useAppStore } from '@/lib/store'
 import { DEAL_STORES, getStoreInfo } from '@/lib/constants'
 
 const FREE_GAME_STORES = [
@@ -17,28 +19,38 @@ const FREE_GAME_STORES = [
   { value: 'indiegala', label: 'IndieGala' },
   { value: 'other', label: 'Altro' },
 ]
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Gift, RefreshCw, ExternalLink, Loader2, Star } from 'lucide-react'
+import { Gift, RefreshCw, ExternalLink, Loader2, Bookmark, BookmarkCheck } from 'lucide-react'
 
 
 // ============================================
-// FREE GAME CARD
+// FREE GAME CARD (same style as dashboard)
 // ============================================
 
 function FreeGameCard({ deal }: { deal: FreeGame }) {
   const storeInfo = getStoreInfo(deal.storeID)
-  const metacritic = parseInt(deal.metacriticScore, 10)
-  const steamPercent = parseInt(deal.steamRatingPercent, 10)
+  const bookmarked = useAppStore((s) => s.isFavorite(deal.dealUrl))
+  const { addFavorite: addFav, removeFavorite: removeFav } = useAppStore()
+
+  async function toggleBookmark(e: React.MouseEvent) {
+    e.preventDefault(); e.stopPropagation()
+    if (bookmarked) {
+      const fav = useAppStore.getState().favorites.find(f => f.link === deal.dealUrl)
+      if (fav) { await removeFavorite(fav.id); removeFav(fav.id) }
+    } else {
+      const fav = await addFavorite({ type: 'free_game', title: deal.title, link: deal.dealUrl, imageUrl: deal.thumb, source: storeInfo.name, metadata: JSON.stringify({ storeID: deal.storeID, storeName: deal.storeName }) })
+      addFav(fav)
+    }
+  }
 
   return (
     <a
       href={deal.dealUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="block bg-card border border-border rounded-xl overflow-hidden group cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+      className="block bg-card border border-border rounded-xl overflow-hidden group cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col"
     >
       <div className="relative aspect-video bg-muted overflow-hidden">
         {deal.thumb ? (
@@ -54,52 +66,34 @@ function FreeGameCard({ deal }: { deal: FreeGame }) {
           </div>
         )}
 
-        {/* GRATIS badge */}
-        <Badge className="absolute top-2 right-2 bg-success text-success-foreground text-[10px] px-2 py-0.5 border-0 font-bold">
-          GRATIS
-        </Badge>
-
-        {/* Store badge */}
+        {/* Store badge - top left */}
         <Badge
           className="absolute top-2 left-2 text-white text-[10px] px-2 py-0.5 border-0"
           style={{ backgroundColor: storeInfo.color }}
         >
           {storeInfo.name}
         </Badge>
+
+        {/* Bookmark button - top right */}
+        <button
+          onClick={toggleBookmark}
+          className="absolute top-2 right-2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+          aria-label={bookmarked ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+        >
+          {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 text-primary fill-primary" /> : <Bookmark className="h-3.5 w-3.5 text-white" />}
+        </button>
       </div>
 
-      <CardContent className="p-3 space-y-2">
-        <h3 className="font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors text-sm">
+      <div className="p-3 space-y-2 flex flex-col flex-1">
+        <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
           {deal.title}
         </h3>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {metacritic > 0 && (
-            <Badge
-              className={`text-[10px] px-1.5 py-0.5 border-0 font-bold ${
-                metacritic > 75
-                  ? 'bg-green-600 text-white'
-                  : metacritic > 60
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-red-600 text-white'
-              }`}
-            >
-              {metacritic}
-            </Badge>
-          )}
-          {steamPercent > 0 && deal.steamRatingText && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-              {steamPercent}% {deal.steamRatingText}
-            </span>
-          )}
-        </div>
-
-        <Button size="sm" variant="primary" className="w-full gap-1.5 text-xs h-7">
+        <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs h-7 mt-auto">
           <ExternalLink className="h-3 w-3" />
           Ottieni gratis
         </Button>
-      </CardContent>
+      </div>
     </a>
   )
 }
@@ -111,12 +105,12 @@ function FreeGameCard({ deal }: { deal: FreeGame }) {
 
 function FreeGameCardSkeleton() {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col">
       <Skeleton className="w-full aspect-video" />
-      <div className="p-3 space-y-2">
+      <div className="p-3 space-y-2 flex-1">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-2/3" />
-        <Skeleton className="h-7 w-full" />
+        <Skeleton className="h-7 w-full mt-auto" />
       </div>
     </div>
   )
@@ -128,6 +122,7 @@ function FreeGameCardSkeleton() {
 // ============================================
 
 export function FreeGamesView() {
+  const { setFavorites } = useAppStore()
   const [games, setGames] = useState<FreeGame[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -137,6 +132,11 @@ export function FreeGamesView() {
   const [refreshing, setRefreshing] = useState(false)
   const [page, setPage] = useState(0)
   const pageSize = 20
+
+  // Load favorites
+  useEffect(() => {
+    getFavorites().then(setFavorites).catch(() => {})
+  }, [setFavorites])
 
   const fetchGames = useCallback(async (pageNum: number, storeFilter: string, isRefresh = false) => {
     if (isRefresh) {

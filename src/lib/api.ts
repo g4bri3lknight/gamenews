@@ -1,4 +1,4 @@
-import type { NewsArticle, GameRelease, FollowedGame } from './constants'
+import type { NewsArticle, GameRelease, FollowedGame, Favorite } from './constants'
 
 const BASE = '/api'
 
@@ -150,6 +150,9 @@ export async function getDeals(params?: {
   storeID?: string
   sortBy?: string
   upperPrice?: number
+  lowerPrice?: number
+  metacritic?: number
+  onSale?: boolean
 }): Promise<GameDeal[]> {
   const sp = new URLSearchParams()
   if (params?.pageNumber !== undefined) sp.set('pageNumber', String(params.pageNumber))
@@ -157,6 +160,89 @@ export async function getDeals(params?: {
   if (params?.storeID) sp.set('storeID', params.storeID)
   if (params?.sortBy) sp.set('sortBy', params.sortBy)
   if (params?.upperPrice !== undefined) sp.set('upperPrice', String(params.upperPrice))
+  if (params?.lowerPrice !== undefined) sp.set('lowerPrice', String(params.lowerPrice))
+  if (params?.metacritic !== undefined) sp.set('metacritic', String(params.metacritic))
+  if (params?.onSale !== undefined) sp.set('onSale', String(params.onSale))
   const query = sp.toString() ? `?${sp.toString()}` : ''
   return fetchAPI<GameDeal[]>(`${BASE}/deals${query}`)
+}
+
+// ============================================
+// PRICE COMPARISON API
+// ============================================
+
+export interface StorePrice {
+  storeID: string
+  storeName: string
+  price: string
+  normalPrice: string
+  savings: number
+  dealUrl: string
+  color: string
+}
+
+export async function getPriceComparison(title: string): Promise<StorePrice[]> {
+  const sp = new URLSearchParams()
+  sp.set('title', title)
+  return fetchAPI<StorePrice[]>(`${BASE}/price-comparison?${sp.toString()}`)
+}
+
+// ============================================
+// PRICE HISTORY API
+// ============================================
+
+export interface PriceDataPoint {
+  date: string
+  price: number
+  store: string
+}
+
+export interface PriceHistory {
+  gameTitle: string
+  currentPrice: number
+  lowestPrice: number
+  highestPrice: number
+  dataPoints: PriceDataPoint[]
+}
+
+export async function getPriceHistory(params: {
+  title?: string
+  steamAppID?: string
+}): Promise<PriceHistory> {
+  const sp = new URLSearchParams()
+  if (params.title) sp.set('title', params.title)
+  if (params.steamAppID) sp.set('steamAppID', params.steamAppID)
+  return fetchAPI<PriceHistory>(`${BASE}/price-history?${sp.toString()}`)
+}
+
+// ============================================
+// FAVORITES API
+// ============================================
+
+export async function getFavorites(): Promise<Favorite[]> {
+  return fetchAPI<Favorite[]>(`${BASE}/favorites`)
+}
+
+export async function addFavorite(data: {
+  type: string
+  title: string
+  link: string
+  imageUrl?: string
+  description?: string
+  source?: string
+  metadata?: string
+}): Promise<Favorite> {
+  return fetchAPI<Favorite>(`${BASE}/favorites`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function removeFavorite(id: string): Promise<void> {
+  return fetchAPI<void>(`${BASE}/favorites`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+  })
 }

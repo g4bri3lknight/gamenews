@@ -34,6 +34,16 @@ export const RSS_FEEDS: RSSFeedConfig[] = [
     name: 'Lega Nerd',
     color: '#6c3483',
   },
+  {
+    url: 'https://www.everyeye.it/feed/',
+    name: 'Everyeye.it',
+    color: '#009933',
+  },
+  {
+    url: 'https://www.spaziogames.it/feed/',
+    name: 'Spaziogames.it',
+    color: '#e53935',
+  },
 ]
 
 // ─── Normalized article shape ─────────────────────────────────────────────────

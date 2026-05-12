@@ -2,19 +2,64 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAppStore } from '@/lib/store'
+import { THEMES } from '@/lib/constants'
 import { AppSidebar } from '@/components/app-sidebar'
 import DashboardView from '@/components/views/dashboard'
 import { NewsView } from '@/components/views/news'
 import { CalendarView } from '@/components/views/calendar'
 import { FreeGamesView } from '@/components/views/free-games'
 import { DealsView } from '@/components/views/deals'
+import { FavoritesView } from '@/components/views/favorites'
 import SettingsView from '@/components/views/settings'
+import { GlobalSearchDialog } from '@/components/global-search'
+import { NotificationBell } from '@/components/notification-bell'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { ArrowUp, Gamepad2, Menu } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { ArrowUp, Gamepad2, Menu, Search, Moon, Sun } from 'lucide-react'
+
+function HeaderThemeButton() {
+  const { currentTheme, setCurrentTheme } = useAppStore()
+  const theme = THEMES.find((t) => t.value === currentTheme) || THEMES[0]
+  const nextThemeIndex = (THEMES.findIndex((t) => t.value === currentTheme) + 1) % THEMES.length
+  const nextTheme = THEMES[nextThemeIndex]
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentTheme(nextTheme.value)}
+            className="relative overflow-hidden h-8 w-8"
+          >
+            <div
+              className="absolute inset-0 rounded-md opacity-80"
+              style={{ backgroundColor: theme.preview.accent }}
+            />
+            {theme.type === 'dark' ? (
+              <Moon className="h-4 w-4 relative z-10 text-white" />
+            ) : (
+              <Sun className="h-4 w-4 relative z-10 text-white" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>Tema selezionato: {theme.label}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
 
 export default function Home() {
-  const { currentView, setSidebarOpen } = useAppStore()
+  const { currentView, setSidebarOpen, searchOpen, setSearchOpen } = useAppStore()
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(0)
   const mainRef = useRef<HTMLDivElement>(null)
@@ -55,26 +100,62 @@ export default function Home() {
     mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // Cmd+K / Ctrl+K keyboard shortcut for global search
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [setSearchOpen])
+
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar />
 
-      {/* Mobile header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-3 h-14 border-b border-border bg-card/80 backdrop-blur-md">
+      {/* Global Search Dialog (rendered once, outside views) */}
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+
+      {/* Fixed Header - visible on both mobile and desktop */}
+      <header
+        className="fixed top-0 z-40 flex items-center gap-3 h-14 border-b border-border bg-card/80 backdrop-blur-md transition-[left] duration-300"
+        style={{ left: sidebarWidth > 0 ? `${sidebarWidth}px` : 0, right: 0 }}
+      >
+        {/* Mobile hamburger */}
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 flex-shrink-0"
+          className="md:hidden h-9 w-9 flex-shrink-0"
           onClick={() => setSidebarOpen(true)}
           aria-label="Apri menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <div className="flex items-center gap-2">
+
+        {/* Logo + title */}
+        <div className="flex items-center gap-2 min-w-0">
           <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
             <Gamepad2 className="h-3.5 w-3.5" />
           </div>
           <span className="font-bold text-base tracking-tight">GameVault</span>
+        </div>
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+          <HeaderThemeButton />
+          <NotificationBell />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Cerca"
+          >
+            <Search className="h-4 w-4" />
+          </Button>
         </div>
       </header>
 
@@ -86,13 +167,14 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="px-4 sm:px-6 lg:px-8 pt-[3.75rem] md:pt-4 lg:pt-8 pb-20"
+            className="px-4 sm:px-6 lg:px-8 pt-[4.25rem] pb-20"
           >
             {currentView === 'dashboard' && <DashboardView />}
             {currentView === 'news' && <NewsView />}
             {currentView === 'calendar' && <CalendarView />}
             {currentView === 'free-games' && <FreeGamesView />}
             {currentView === 'deals' && <DealsView />}
+            {currentView === 'favorites' && <FavoritesView />}
             {currentView === 'settings' && <SettingsView />}
           </motion.div>
         </AnimatePresence>

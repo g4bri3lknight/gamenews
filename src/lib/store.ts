@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import type { View, FollowedGame, NewsArticle, GameRelease } from './constants'
+import type { View, FollowedGame, NewsArticle, GameRelease, Favorite } from './constants'
 import { applyThemeCSSVars } from './theme-vars'
 
-export type { View, FollowedGame, NewsArticle, GameRelease }
+export type { View, FollowedGame, NewsArticle, GameRelease, Favorite }
 
 interface AppState {
   // Navigation
@@ -23,6 +23,17 @@ interface AppState {
   addFollowedGame: (game: FollowedGame) => void
   removeFollowedGame: (id: string) => void
   isFollowed: (rawgId: number) => boolean
+
+  // Favorites (bookmarks)
+  favorites: Favorite[]
+  setFavorites: (favorites: Favorite[]) => void
+  addFavorite: (favorite: Favorite) => void
+  removeFavorite: (id: string) => void
+  isFavorite: (link: string) => boolean
+
+  // Global search dialog
+  searchOpen: boolean
+  setSearchOpen: (open: boolean) => void
 
   // Calendar month
   selectedMonth: string
@@ -66,6 +77,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       followedGames: state.followedGames.filter((g) => g.id !== id),
     })),
   isFollowed: (rawgId) => get().followedGames.some((g) => g.rawgId === rawgId),
+
+  // Favorites
+  favorites: [],
+  setFavorites: (favorites) => set({ favorites }),
+  addFavorite: (favorite) =>
+    set((state) => ({ favorites: [...state.favorites, favorite] })),
+  removeFavorite: (id) =>
+    set((state) => ({
+      favorites: state.favorites.filter((f) => f.id !== id),
+    })),
+  isFavorite: (link) => get().favorites.some((f) => f.link === link),
+
+  // Global search dialog
+  searchOpen: false,
+  setSearchOpen: (open) => set({ searchOpen: open }),
 
   // Calendar month
   selectedMonth: (() => {

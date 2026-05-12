@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAppStore } from '@/lib/store'
-import { getNews, getUpcomingReleases, getFollowedGames, followGame, unfollowGame, getFreeGames, getDeals } from '@/lib/api'
+import { getNews, getUpcomingReleases, getFollowedGames, followGame, unfollowGame, getFreeGames, getDeals, getFavorites, addFavorite, removeFavorite } from '@/lib/api'
 import type { FreeGame, GameDeal } from '@/lib/api'
 import {
   timeAgo, formatCountdown, getSourceColor, getStoreInfo,
@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   Newspaper, Gamepad2, Star, ArrowRight, ExternalLink,
   Calendar, Heart, Plus, Clock, TrendingUp, RefreshCw, ChevronLeft, ChevronRight,
-  Gift, Percent,
+  Gift, Percent, Bookmark, BookmarkCheck,
 } from 'lucide-react'
 
 // ============================================
@@ -110,6 +110,20 @@ function ScrollSection({
 
 function NewsCard({ article }: { article: NewsArticle }) {
   const sourceColor = getSourceColor(article.source)
+  const bookmarked = useAppStore((s) => s.isFavorite(article.link))
+  const { addFavorite: addFav, removeFavorite: removeFav } = useAppStore()
+
+  async function toggleBookmark(e: React.MouseEvent) {
+    e.preventDefault(); e.stopPropagation()
+    if (bookmarked) {
+      const fav = useAppStore.getState().favorites.find(f => f.link === article.link)
+      if (fav) { await removeFavorite(fav.id); removeFav(fav.id) }
+    } else {
+      const fav = await addFavorite({ type: 'article', title: article.title, link: article.link, imageUrl: article.imageUrl, description: article.description, source: article.source })
+      addFav(fav)
+    }
+  }
+
   return (
     <a
       href={article.link}
@@ -126,6 +140,13 @@ function NewsCard({ article }: { article: NewsArticle }) {
         <Badge className="absolute top-2 left-2 text-white text-[10px] px-2 py-0.5 border-0" style={{ backgroundColor: sourceColor }}>
           {article.source}
         </Badge>
+        <button
+          onClick={toggleBookmark}
+          className="absolute top-2 right-2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+          aria-label={bookmarked ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+        >
+          {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 text-primary fill-primary" /> : <Bookmark className="h-3.5 w-3.5 text-white" />}
+        </button>
       </div>
       <div className="p-3 space-y-1.5">
         <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">{article.title}</h3>
@@ -251,6 +272,20 @@ function FollowedGameCard({ game }: { game: FollowedGame }) {
 
 function FreeGameCard({ deal }: { deal: FreeGame }) {
   const storeInfo = getStoreInfo(deal.storeID)
+  const bookmarked = useAppStore((s) => s.isFavorite(deal.dealUrl))
+  const { addFavorite: addFav, removeFavorite: removeFav } = useAppStore()
+
+  async function toggleBookmark(e: React.MouseEvent) {
+    e.preventDefault(); e.stopPropagation()
+    if (bookmarked) {
+      const fav = useAppStore.getState().favorites.find(f => f.link === deal.dealUrl)
+      if (fav) { await removeFavorite(fav.id); removeFav(fav.id) }
+    } else {
+      const fav = await addFavorite({ type: 'free_game', title: deal.title, link: deal.dealUrl, imageUrl: deal.thumb, source: storeInfo.name, metadata: JSON.stringify({ storeID: deal.storeID, storeName: deal.storeName }) })
+      addFav(fav)
+    }
+  }
+
   return (
     <a
       href={deal.dealUrl}
@@ -264,7 +299,13 @@ function FreeGameCard({ deal }: { deal: FreeGame }) {
         ) : (
           <div className="w-full h-full flex items-center justify-center"><Gift className="h-8 w-8 text-muted-foreground" /></div>
         )}
-        <Badge className="absolute top-2 right-2 bg-success text-success-foreground text-[10px] px-2 py-0.5 border-0 font-bold">GRATIS</Badge>
+        <button
+          onClick={toggleBookmark}
+          className="absolute top-2 right-2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+          aria-label={bookmarked ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+        >
+          {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 text-primary fill-primary" /> : <Bookmark className="h-3.5 w-3.5 text-white" />}
+        </button>
         <Badge className="absolute top-2 left-2 text-white text-[10px] px-2 py-0.5 border-0" style={{ backgroundColor: storeInfo.color }}>
           {storeInfo.name}
         </Badge>
@@ -287,6 +328,19 @@ function DealCard({ deal }: { deal: GameDeal }) {
   const storeInfo = getStoreInfo(deal.storeID)
   const savings = Math.round(parseFloat(deal.savings))
   const isFree = deal.salePrice === '0.00'
+  const bookmarked = useAppStore((s) => s.isFavorite(deal.dealUrl))
+  const { addFavorite: addFav, removeFavorite: removeFav } = useAppStore()
+
+  async function toggleBookmark(e: React.MouseEvent) {
+    e.preventDefault(); e.stopPropagation()
+    if (bookmarked) {
+      const fav = useAppStore.getState().favorites.find(f => f.link === deal.dealUrl)
+      if (fav) { await removeFavorite(fav.id); removeFav(fav.id) }
+    } else {
+      const fav = await addFavorite({ type: 'deal', title: deal.title, link: deal.dealUrl, imageUrl: deal.thumb, source: storeInfo.name, metadata: JSON.stringify({ storeID: deal.storeID, storeName: deal.storeName, salePrice: deal.salePrice, normalPrice: deal.normalPrice, savings: deal.savings }) })
+      addFav(fav)
+    }
+  }
 
   return (
     <a
@@ -304,6 +358,14 @@ function DealCard({ deal }: { deal: GameDeal }) {
         {savings > 0 && (
           <span className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded">-{savings}%</span>
         )}
+        <button
+          onClick={toggleBookmark}
+          className="absolute top-2 right-2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+          aria-label={bookmarked ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+          style={savings > 0 ? { top: '2.25rem', right: '0.5rem' } : undefined}
+        >
+          {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 text-primary fill-primary" /> : <Bookmark className="h-3.5 w-3.5 text-white" />}
+        </button>
         <Badge className="absolute top-2 left-2 text-white text-[10px] px-2 py-0.5 border-0" style={{ backgroundColor: storeInfo.color }}>
           {storeInfo.name}
         </Badge>
@@ -330,7 +392,7 @@ function DealCard({ deal }: { deal: GameDeal }) {
 // ============================================
 
 export default function DashboardView() {
-  const { setCurrentView, followedGames, setFollowedGames, addFollowedGame, removeFollowedGame } = useAppStore()
+  const { setCurrentView, followedGames, setFollowedGames, addFollowedGame, removeFollowedGame, favorites, setFavorites } = useAppStore()
   const [articles, setArticles] = useState<NewsArticle[]>([])
   const [releases, setReleases] = useState<GameRelease[]>([])
   const [freeGames, setFreeGames] = useState<FreeGame[]>([])
@@ -379,6 +441,13 @@ export default function DashboardView() {
       .finally(() => setInitialLoading(false))
   }, [setFollowedGames])
 
+  // Load favorites
+  useEffect(() => {
+    getFavorites()
+      .then(setFavorites)
+      .catch(() => {})
+  }, [setFavorites])
+
   // Load free games
   useEffect(() => {
     let cancelled = false
@@ -417,10 +486,6 @@ export default function DashboardView() {
   if (initialLoading) {
     return (
       <div className="space-y-4 animate-in fade-in duration-500">
-        {/* Sticky header skeleton (hidden on mobile - mobile header is in page.tsx) */}
-        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 hidden md:block">
-          <div className="h-7 w-48 bg-muted rounded animate-pulse" />
-        </div>
         {[...Array(3)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="pb-2"><Skeleton className="h-5 w-40" /></CardHeader>
@@ -442,19 +507,6 @@ export default function DashboardView() {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
-      {/* Sticky header (hidden on mobile - mobile header is in page.tsx) */}
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 hidden md:flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-            <Gamepad2 className="h-4 w-4" />
-          </div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">GameVault</h1>
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Dashboard Gaming</p>
-          </div>
-        </div>
-      </div>
-
       {/* NEWS */}
       <ScrollSection
         title="Ultime Notizie"
