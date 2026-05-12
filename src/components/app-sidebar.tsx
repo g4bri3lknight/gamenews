@@ -48,33 +48,8 @@ function SidebarContent({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
-      {/* Header - just logo, title is now in the fixed top header */}
-      <div className="flex items-center justify-center p-4 min-h-[65px]">
-        {!collapsed ? (
-          <div className="flex items-center gap-3 w-full">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                <rect x="2" y="6" width="20" height="12" rx="2" />
-                <path d="M12 12h.01" />
-                <path d="M17 12h.01" />
-                <path d="M7 12h.01" />
-              </svg>
-            </div>
-            <span className="font-bold text-lg leading-tight">Menu</span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-              <rect x="2" y="6" width="20" height="12" rx="2" />
-              <path d="M12 12h.01" />
-              <path d="M17 12h.01" />
-              <path d="M7 12h.01" />
-            </svg>
-          </div>
-        )}
-      </div>
-
-      <Separator className="bg-sidebar-border" />
+      {/* Header - empty space, title is in the fixed top header */}
+      <div className="min-h-[64px]" />
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1">
@@ -100,8 +75,6 @@ function SidebarContent({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           </TooltipProvider>
         ))}
       </nav>
-
-      <Separator className="bg-sidebar-border" />
 
       {/* Footer - just collapse toggle */}
       <div className="p-2 flex items-center justify-center">

@@ -37,7 +37,7 @@ function HeaderThemeButton() {
             variant="ghost"
             size="icon"
             onClick={() => setCurrentTheme(nextTheme.value)}
-            className="relative overflow-hidden h-8 w-8"
+            className="relative overflow-hidden h-9 w-9"
           >
             <div
               className="absolute inset-0 rounded-md opacity-80"
@@ -121,14 +121,14 @@ export default function Home() {
 
       {/* Fixed Header - visible on both mobile and desktop */}
       <header
-        className="fixed top-0 z-40 flex items-center gap-3 h-14 border-b border-border bg-card/80 backdrop-blur-md transition-[left] duration-300"
+        className="fixed top-0 z-40 flex items-center gap-3 h-16 border-b border-border bg-card/80 backdrop-blur-md transition-[left] duration-300"
         style={{ left: sidebarWidth > 0 ? `${sidebarWidth}px` : 0, right: 0 }}
       >
         {/* Mobile hamburger */}
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden h-9 w-9 flex-shrink-0"
+          className="md:hidden h-10 w-10 flex-shrink-0"
           onClick={() => setSidebarOpen(true)}
           aria-label="Apri menu"
         >
@@ -136,26 +136,26 @@ export default function Home() {
         </Button>
 
         {/* Logo + title */}
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-            <Gamepad2 className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+            <Gamepad2 className="h-5 w-5" />
           </div>
-          <span className="font-bold text-base tracking-tight">GameVault</span>
+          <span className="font-bold text-lg tracking-tight">GameVault</span>
         </div>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-1 ml-auto flex-shrink-0">
-          <HeaderThemeButton />
+        <div className="flex items-center gap-1 ml-auto flex-shrink-0 mr-1.5">
           <NotificationBell />
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-9 w-9"
             onClick={() => setSearchOpen(true)}
             aria-label="Cerca"
           >
             <Search className="h-4 w-4" />
           </Button>
+          <HeaderThemeButton />
         </div>
       </header>
 
@@ -167,7 +167,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="px-4 sm:px-6 lg:px-8 pt-[4.25rem] pb-20"
+            className="px-4 sm:px-6 lg:px-8 pt-[4.75rem] pb-20"
           >
             {currentView === 'dashboard' && <DashboardView />}
             {currentView === 'news' && <NewsView />}

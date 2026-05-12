@@ -46,12 +46,7 @@ function FreeGameCard({ deal }: { deal: FreeGame }) {
   }
 
   return (
-    <a
-      href={deal.dealUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block bg-card border border-border rounded-xl overflow-hidden group cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col"
-    >
+    <div className="bg-card border border-border rounded-xl overflow-hidden group flex flex-col">
       <div className="relative aspect-video bg-muted overflow-hidden">
         {deal.thumb ? (
           <img
@@ -84,17 +79,19 @@ function FreeGameCard({ deal }: { deal: FreeGame }) {
         </button>
       </div>
 
-      <div className="p-3 space-y-2 flex flex-col flex-1">
-        <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+      <div className="p-3 flex flex-col flex-1">
+        <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-2">
           {deal.title}
         </h3>
 
-        <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs h-7 mt-auto">
-          <ExternalLink className="h-3 w-3" />
-          Ottieni gratis
+        <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs h-7 mt-auto" asChild>
+          <a href={deal.dealUrl} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-3 w-3" />
+            Ottieni gratis
+          </a>
         </Button>
       </div>
-    </a>
+    </div>
   )
 }
 

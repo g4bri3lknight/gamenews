@@ -287,12 +287,7 @@ function FreeGameCard({ deal }: { deal: FreeGame }) {
   }
 
   return (
-    <a
-      href={deal.dealUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex-shrink-0 w-56 sm:w-64 bg-card border border-border rounded-xl overflow-hidden group cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-    >
+    <div className="flex-shrink-0 w-56 sm:w-64 bg-card border border-border rounded-xl overflow-hidden group flex flex-col">
       <div className="relative aspect-video bg-muted overflow-hidden">
         {deal.thumb ? (
           <img src={deal.thumb} alt={deal.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
@@ -310,13 +305,15 @@ function FreeGameCard({ deal }: { deal: FreeGame }) {
           {storeInfo.name}
         </Badge>
       </div>
-      <div className="p-3 space-y-1.5">
-        <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">{deal.title}</h3>
-        <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs h-7">
-          <ExternalLink className="h-3 w-3" /> Ottieni gratis
+      <div className="p-3 flex flex-col flex-1">
+        <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-2">{deal.title}</h3>
+        <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs h-7 mt-auto" asChild>
+          <a href={deal.dealUrl} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-3 w-3" /> Ottieni gratis
+          </a>
         </Button>
       </div>
-    </a>
+    </div>
   )
 }
 

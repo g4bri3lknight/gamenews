@@ -7,10 +7,11 @@ import type { GameDeal, FreeGame } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import {
   Bell,
   Percent,
@@ -38,10 +39,10 @@ export interface GameNotification {
   storeName?: string
 }
 
-const CHECK_INTERVAL = 5 * 60 * 1000 // 5 minutes
+const CHECK_INTERVAL = 5 * 60 * 1000
 const MAX_NOTIFICATIONS = 50
 const NOTIFICATIONS_KEY = 'gamevault-notifications'
-const KNOWN_ITEMS_KEY = 'gamevault-known-items' // track already-seen deal/free items
+const KNOWN_ITEMS_KEY = 'gamevault-known-items'
 
 function loadNotifications(): GameNotification[] {
   if (typeof window === 'undefined') return []
@@ -98,15 +99,12 @@ export function NotificationBell() {
   const prevTitlesRef = useRef<Set<string>>(new Set())
   const initializedRef = useRef(false)
 
-  // Load from localStorage on mount
   useEffect(() => {
     const loaded = loadNotifications()
     setNotifications(loaded)
 
-    // Initialize known items from existing notifications to prevent duplicates
     const knownItems = loadKnownItems()
     if (knownItems.size === 0 && loaded.length > 0) {
-      // Migrate: build known items from existing notifications on first load
       const items = new Set<string>()
       for (const n of loaded) {
         if (n.type === 'deal') items.add(`deal:${n.title.toLowerCase()}`)
@@ -131,7 +129,6 @@ export function NotificationBell() {
     try {
       const followedTitles = new Set(followedGames.map(g => g.title.toLowerCase()))
 
-      // Fetch deals and free games in parallel
       const [dealsResult, freeGamesResult] = await Promise.allSettled([
         getDeals({ pageNumber: 0, pageSize: 60, sortBy: 'Deal Rating' }),
         getFreeGames({ pageNumber: 0, pageSize: 60 }),
@@ -143,7 +140,6 @@ export function NotificationBell() {
       const newNotifications: GameNotification[] = []
       const currentTitles = new Set<string>(prevTitlesRef.current)
 
-      // Check deals for followed games
       for (const deal of deals) {
         const dealTitle = deal.title.toLowerCase()
         const key = `deal:${dealTitle}`
@@ -168,7 +164,6 @@ export function NotificationBell() {
         }
       }
 
-      // Check free games for followed games
       for (const game of freeGames) {
         const gameTitle = game.title.toLowerCase()
         const key = `free:${gameTitle}`
@@ -189,7 +184,6 @@ export function NotificationBell() {
         }
       }
 
-      // Check for release notifications (games released today or within 3 days)
       const now = new Date()
       for (const game of followedGames) {
         if (!game.releasedAt) continue
@@ -220,7 +214,6 @@ export function NotificationBell() {
         }
       }
 
-      // Persist known items to prevent re-detection on refresh
       prevTitlesRef.current = currentTitles
       saveKnownItems(currentTitles)
 
@@ -238,9 +231,7 @@ export function NotificationBell() {
     }
   }, [followedGames, notifications])
 
-  // Check on mount and on interval
   useEffect(() => {
-    // Small delay to let prevTitlesRef initialize from localStorage
     const timer = setTimeout(() => {
       checkForNotifications()
     }, 1000)
@@ -277,150 +268,152 @@ export function NotificationBell() {
   const activeNotifications = notifications.filter(n => !n.dismissed)
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-8 w-8"
-          aria-label="Notifiche"
-        >
-          {checking ? (
-            <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Bell className="h-4 w-4" />
-          )}
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 sm:w-96 p-0" align="end">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            <span className="font-semibold text-sm">Notifiche</span>
-            {unreadCount > 0 && (
-              <Badge variant="secondary" className="text-[10px] h-5">
-                {unreadCount} nuove
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            {activeNotifications.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={dismissAll}
-                className="h-6 text-xs gap-1 px-2"
-              >
-                <Check className="h-3 w-3" />
-                Leggi tutte
-              </Button>
-            )}
-            {notifications.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAll}
-                className="h-6 text-xs gap-1 px-2"
-              >
-                <X className="h-3 w-3" />
-                Pulisci
-              </Button>
-            )}
-          </div>
-        </div>
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="relative h-9 w-9"
+        aria-label="Notifiche"
+        onClick={() => setOpen(true)}
+      >
+        {checking ? (
+          <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <Bell className="h-4 w-4" />
+        )}
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </Button>
 
-        {/* Content */}
-        <div className="max-h-80 overflow-y-auto">
-          {followedGames.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground px-4">
-              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Segui dei giochi per ricevere notifiche</p>
-              <p className="text-xs mt-1">Vai al Calendario Uscite per iniziare</p>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg p-0 gap-0 max-h-[85dvh] flex flex-col" showCloseButton={false}>
+          <DialogTitle className="sr-only">Notifiche</DialogTitle>
+          <DialogDescription className="sr-only">Le tue notifiche di gioco</DialogDescription>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              <span className="font-semibold text-sm">Notifiche</span>
+              {unreadCount > 0 && (
+                <Badge variant="secondary" className="text-[10px] h-5">
+                  {unreadCount} nuove
+                </Badge>
+              )}
             </div>
-          ) : activeNotifications.length > 0 ? (
-            <div className="divide-y divide-border">
-              {activeNotifications.map(notification => (
-                <div
-                  key={notification.id}
-                  className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+            <div className="flex items-center gap-1">
+              {activeNotifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={dismissAll}
+                  className="h-8 text-xs gap-1 px-2"
                 >
-                  {/* Icon + Image */}
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted overflow-hidden">
-                    {notification.imageUrl ? (
-                      <img
-                        src={notification.imageUrl}
-                        alt={notification.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : notification.type === 'deal' ? (
-                      <div className="w-full h-full flex items-center justify-center bg-destructive/10">
-                        <Percent className="h-4 w-4 text-destructive" />
-                      </div>
-                    ) : notification.type === 'free' ? (
-                      <div className="w-full h-full flex items-center justify-center bg-success/10">
-                        <Gift className="h-4 w-4 text-success" />
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                        <Clock className="h-4 w-4 text-primary" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium leading-tight line-clamp-1">
-                      {notification.title}
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                      {notification.message}
-                    </p>
-                    {notification.storeName && (
-                      <Badge variant="secondary" className="text-[9px] mt-1 px-1.5 py-0 h-4">
-                        {notification.storeName}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <a
-                      href={notification.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setOpen(false)}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                    <button
-                      onClick={() => dismissNotification(notification.id)}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  <Check className="h-3.5 w-3.5" />
+                  Leggi tutte
+                </Button>
+              )}
+              {notifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAll}
+                  className="h-8 text-xs gap-1 px-2"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Pulisci
+                </Button>
+              )}
             </div>
-          ) : (
-            <div className="py-8 text-center text-muted-foreground px-4">
-              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nessuna notifica</p>
-              <p className="text-xs mt-1">
-                Le notifiche vengono controllate ogni 5 minuti
-              </p>
-            </div>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            {followedGames.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground px-4">
+                <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Segui dei giochi per ricevere notifiche</p>
+                <p className="text-xs mt-1">Vai al Calendario Uscite per iniziare</p>
+              </div>
+            ) : activeNotifications.length > 0 ? (
+              <div className="divide-y divide-border">
+                {activeNotifications.map(notification => (
+                  <div
+                    key={notification.id}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted transition-colors"
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted overflow-hidden">
+                      {notification.imageUrl ? (
+                        <img
+                          src={notification.imageUrl}
+                          alt={notification.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : notification.type === 'deal' ? (
+                        <div className="w-full h-full flex items-center justify-center bg-destructive/10">
+                          <Percent className="h-4 w-4 text-destructive" />
+                        </div>
+                      ) : notification.type === 'free' ? (
+                        <div className="w-full h-full flex items-center justify-center bg-success/10">
+                          <Gift className="h-4 w-4 text-success" />
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                          <Clock className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium leading-tight line-clamp-1">
+                        {notification.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                        {notification.message}
+                      </p>
+                      {notification.storeName && (
+                        <Badge variant="secondary" className="text-[9px] mt-1 px-1.5 py-0 h-4">
+                          {notification.storeName}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0 pt-0.5">
+                      <a
+                        href={notification.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                        onClick={() => setOpen(false)}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                      <button
+                        onClick={() => dismissNotification(notification.id)}
+                        className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground px-4">
+                <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Nessuna notifica</p>
+                <p className="text-xs mt-1">
+                  Le notifiche vengono controllate ogni 5 minuti
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

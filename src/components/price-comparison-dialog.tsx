@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { getPriceComparison, type StorePrice } from '@/lib/api'
 import {
   Dialog,
@@ -66,12 +66,17 @@ export function PriceComparisonDialog({
     }
   }, [])
 
-  function handleOpenChange(value: boolean) {
-    if (value && gameTitle) {
+  // Fetch data when dialog opens programmatically
+  useEffect(() => {
+    if (open && gameTitle) {
       setPrices([])
       setError(null)
       fetchPrices(gameTitle)
-    } else if (!value) {
+    }
+  }, [open])
+
+  function handleOpenChange(value: boolean) {
+    if (!value) {
       setPrices([])
       setError(null)
       fetchIdRef.current++
@@ -102,8 +107,8 @@ export function PriceComparisonDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Content area with min height for consistent layout */}
-        <div className="min-h-[200px]">
+        {/* Content area with overflow constraint */}
+        <div className="overflow-hidden min-h-[200px] max-h-[400px]">
           {loading ? (
             <div className="space-y-3 py-2">
               {[...Array(4)].map((_, i) => (
@@ -137,7 +142,7 @@ export function PriceComparisonDialog({
               </Button>
             </div>
           ) : (
-            <ScrollArea className="max-h-80 pr-1">
+            <ScrollArea className="h-[350px] pr-1">
               <div className="space-y-2">
                 {prices.map((store, index) => {
                   const isCheapest = index === 0 && hasMultipleStores

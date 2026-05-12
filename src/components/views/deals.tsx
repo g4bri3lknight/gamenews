@@ -51,56 +51,49 @@ function DealCard({ deal, onCompare, onHistory }: { deal: GameDeal; onCompare: (
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden group transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col">
-      <a
-        href={deal.dealUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-      >
-        <div className="relative aspect-video bg-muted overflow-hidden">
-          {deal.thumb ? (
-            <img
-              src={deal.thumb}
-              alt={deal.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Percent className="h-10 w-10 text-muted-foreground" />
-            </div>
-          )}
-
-          {/* Discount badge - top right */}
-          {savings > 0 && (
-            <div className="absolute top-2 right-2">
-              <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded">
-                -{savings}%
-              </span>
-            </div>
-          )}
-
-          {/* Store badge - top left */}
-          <div className="absolute top-2 left-2">
-            <Badge
-              className="text-white text-[10px] px-2 py-0.5 border-0"
-              style={{ backgroundColor: storeInfo.color }}
-            >
-              {storeInfo.name}
-            </Badge>
+      <div className="relative aspect-video bg-muted overflow-hidden">
+        {deal.thumb ? (
+          <img
+            src={deal.thumb}
+            alt={deal.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Percent className="h-10 w-10 text-muted-foreground" />
           </div>
+        )}
 
-          {/* Bookmark button */}
-          <button
-            onClick={toggleBookmark}
-            className="absolute top-2 right-2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
-            aria-label={bookmarked ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
-            style={savings > 0 ? { top: '2.25rem' } : undefined}
+        {/* Discount badge - top right */}
+        {savings > 0 && (
+          <div className="absolute top-2 right-2">
+            <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded">
+              -{savings}%
+            </span>
+          </div>
+        )}
+
+        {/* Store badge - top left */}
+        <div className="absolute top-2 left-2">
+          <Badge
+            className="text-white text-[10px] px-2 py-0.5 border-0"
+            style={{ backgroundColor: storeInfo.color }}
           >
-            {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 text-primary fill-primary" /> : <Bookmark className="h-3.5 w-3.5 text-white" />}
-          </button>
+            {storeInfo.name}
+          </Badge>
         </div>
-      </a>
+
+        {/* Bookmark button */}
+        <button
+          onClick={toggleBookmark}
+          className="absolute top-2 right-2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+          aria-label={bookmarked ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+          style={savings > 0 ? { top: '2.25rem' } : undefined}
+        >
+          {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 text-primary fill-primary" /> : <Bookmark className="h-3.5 w-3.5 text-white" />}
+        </button>
+      </div>
 
       <div className="p-3 space-y-2 flex flex-col flex-1">
         {/* Title */}

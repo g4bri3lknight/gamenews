@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { getPriceHistory, type PriceHistory } from '@/lib/api'
 import {
   Dialog,
@@ -115,12 +115,17 @@ export function PriceHistoryDialog({
     }
   }, [])
 
-  function handleOpenChange(value: boolean) {
-    if (value && (gameTitle || steamAppID)) {
+  // Fetch data when dialog opens programmatically
+  useEffect(() => {
+    if (open && (gameTitle || steamAppID)) {
       setHistory(null)
       setError(null)
       fetchHistoryData(gameTitle, steamAppID || '')
-    } else if (!value) {
+    }
+  }, [open])
+
+  function handleOpenChange(value: boolean) {
+    if (!value) {
       setHistory(null)
       setError(null)
       fetchIdRef.current++
